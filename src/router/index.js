@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import HomeView from '../views/HomeView.vue'
 import CreateView from '../views/CreateView.vue'
-import ChatView from '../views/chatview.vue'
+import ChatView from '../views/ChatView.vue'
 
 
 const router = createRouter({
