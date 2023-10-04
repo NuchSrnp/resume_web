@@ -68,8 +68,9 @@ const createGroup = () => {
                     "message": '',
                     "dateTime": new Date().toISOString()
                 });
-                groupChatName.value = '';
+              
             }
+            groupChatName.value = '';
         }).catch((err) => {
             console.error(err);
         })
