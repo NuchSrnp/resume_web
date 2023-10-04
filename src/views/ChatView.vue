@@ -7,8 +7,12 @@ import {
     ref as refDb,
     set,
     push,
-    onValue
+    onValue,
+    remove,
+    child,
+    get
 } from '../firebaseConfig'
+// import { get } from 'http'; 
 // import { DataSnapshot } from '@firebase/database';
 
 let chat = ref("");
@@ -34,8 +38,9 @@ const onSend = () => {
 }
 
 onValue(db, (snapshot) => {
-    const data = snapshot.val();
-    histories.value = data;
+    // const data = snapshot.val();
+    // histories.value = data;
+    histories.value = snapshot.val() ?? [];
 })
 // watch(histories, (newHistories, oldHistories) => {
 //     bottonEl.value.scrollIntoView({ behavior: 'smooth' });
@@ -52,12 +57,23 @@ const selectGroup = (key) => {
 let groupChatName = ref("");
 const createGroup = () => {
     if (groupChatName.value != '') {
-        push(refDb(database, `all_chat/${groupChatName.value}`), {
-            "user": studentId,
-            "message": '',
-            "dateTime": new Date().toISOString()
-        });
-        groupChatName.value = '';
+        get(child(db, `${groupChatName.value}`)).then((snapshot) => {
+            if(snapshot.exists()){
+                alert("Cannot Create Caht because chat  is exists")
+
+            } else {
+                
+                push(refDb(database, `all_chat/${groupChatName.value}`), {
+                    "user": studentId,
+                    "message": '',
+                    "dateTime": new Date().toISOString()
+                });
+                groupChatName.value = '';
+            }
+        }).catch((err) => {
+            console.error(err);
+        })
+       
     }
 }
 
@@ -67,22 +83,14 @@ const closeCreate = () => {
 };
 
 
-const deleteGroup = (key) => {
-    // ตรวจสอบว่า key ไม่เป็นค่าว่าง
-    if (key !== '') {
-        // ลบกลุ่มที่ถูกเลือกออกจาก Firebase Realtime Database
-        const groupRef = refDb(database, `all_chat/${key}`);
-        set(groupRef, null); // ลบข้อมูลทั้งกลุ่ม
-
-        // ลบกลุ่มที่ถูกเลือกออกจาก `histories`
-        histories.value = histories.value.filter((group, index) => index !== key);
-
-        // เลือกกลุ่มใหม่หลังการลบ
-        if (historykey.value === key) {
-            historykey.value = '';
+const deleteGroup = (groupName) => {
+    if (window.confirm("Do you really want to delete?")) {
+        if (groupName) {
+            const groupRef = refDb(database, `all_chat/${groupName}`)
+            remove(groupRef)
         }
     }
-};
+}
 
 
 
@@ -90,8 +98,8 @@ const deleteGroup = (key) => {
 //     push(refDb(database,'test'), {
 //     "6314110020": "Hello World"
 //   });
-// });
-
+// }); -->
+ 
 </script>
  
 
@@ -112,16 +120,18 @@ const deleteGroup = (key) => {
 
                     <div class="card-body">
                         <h2 class="card-title">{{ index }}</h2>
-                        <p>{{ group[Object.keys(group)[Object.keys(group).length - 1]].message }}</p>
+                        <p>{{ group[Object.keys(group)[Object.keys(group).length - 1]]?.message }}</p>
                     </div>
-                    <button class="btn btn-circle btn-outline" @click="deleteGroup(index)">
-                        
+                    <button class="btn btn-circle btn-outline" v-on:click="deleteGroup(index)">
+
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-  <path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z" clip-rule="evenodd" />
-</svg>
+                            <path fill-rule="evenodd"
+                                d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z"
+                                clip-rule="evenodd" />
+                        </svg>
 
                     </button>
-                    
+
 
                 </div>
 
@@ -144,7 +154,7 @@ const deleteGroup = (key) => {
                         <div class="modal-action">
                             <button class="btn w-[85%] h-[90%]" @click="createGroup">create Group</button>
                             <form method="dialog">
-                                <button class="btn" @click="closeCreate" >Close</button>
+                                <button class="btn" @click="closeCreate">Close</button>
                             </form>
                         </div>
                     </div>
